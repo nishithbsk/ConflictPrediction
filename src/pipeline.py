@@ -16,6 +16,8 @@ tf.set_random_seed(0)
 parser = argparse.ArgumentParser(description='Train Network for Conflict Prediction.')
 parser.add_argument('-wd', '--working_directory', help='directory for storing logs')
 parser.add_argument('-sf', '--save_frequency', help='Number of epochs before saving')
+parser.add_argument('--model_path', help='Stored model path')
+parser.add_argument('mode', choices=('train', 'eval'), help='train or eval')
 args = parser.parse_args()
 
 # Training Constants
@@ -36,6 +38,10 @@ if args.save_frequency:
     save_frequency = args.save_frequency
 else:
     save_frequency = 200
+if args.model_path:
+    model_path = args.model_path
+else:
+    model_path = 'trial/checkpoints/model.ckpt-400'
 
 def get_loss(pred, gt, mask):
     loss = tf.div(tf.reduce_sum(tf.square(tf.sub(pred, gt))), 
@@ -105,5 +111,29 @@ def train():
 
         writer.close()
 
+def evaluate():
+    with tf.device('/gpu:0'): # run on specific device
+        conflict_grids, pred, gt, mask = models.import_model(num_timesteps, 
+							     input_size,
+                                                             batch_size)
+
+    dataset = data.read_datasets(data_file, dataset_type='test')
+
+    saver = tf.train.Saver() 
+    
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
+        saver.restore(sess, model_path)
+        for i in range(updates_per_epoch):
+            conflict_grids_batch, gt_batch, mask_batch = \
+                                    dataset.next_batch(batch_size)
+            pred_value  = sess.run([pred], 
+                                   {conflict_grids : conflict_grids_batch,
+                                    gt : gt_batch,
+                                    mask: mask_batch})
+            print(np.squeeze(pred_value))
+
 if __name__ == "__main__":
-	train()
+    if args.mode == 'train':
+        train()
+    elif args.mode == 'eval':
+        evaluate()
