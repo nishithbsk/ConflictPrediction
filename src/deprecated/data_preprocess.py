@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
-from sklearn.cross_validation import train_test_split
 
 csv_filename = '../data/liberia.csv'
 country_name = 'liberia'
@@ -22,32 +21,31 @@ death_column = 24
 conflict_index = 0
 death_index = 1
 
-def get_train_test(X, y, test_size=0.10):
-    return train_test_split(X, y, test_size=test_size, random_state=42)
+'''
+def get_train_test(X, y):
+    split = 0.8
+    num_train = int(np.ceil(0.8*len(y)))
+''' 
 
 def get_data(grid):
     X, y = [], []
     timescale, num_rows, num_cols, num_features = grid.shape
-    for t in range(num_timesteps, timescale):
-        X.append(grid[t - num_timesteps: t])
-        y_t = np.zeros((num_rows, num_cols))
-        for i in range(num_rows):
-            for j in range(num_cols):
-                if grid[t, i, j, conflict_index] > 0:
-                    y_t[i, j] = 1
-                else:
-                    y_t[i, j] = 0
-        y.append(y_t)
-    X = np.array(X)
-    y = np.array(y)
-
-    mask = np.ones((num_rows, num_cols))
     for i in range(num_rows):
         for j in range(num_cols):
-            if np.sum(grid[:, i, j, conflict_index]) == 0:
-                mask[i, j] = 0
-
-    return X, y, mask 
+            grid_cell = grid[:, i, j, :]
+            # ignore if cell has never had any conflicts
+            if np.sum(grid_cell[:, conflict_index]) == 0: continue
+            for t in range(num_timesteps, timescale):
+                X.append(grid_cell[t - num_timesteps: t])
+                if grid_cell[t, conflict_index] > 0:
+                    y.append(1)
+                else:
+                    y.append(0)
+    X = np.array(X)
+    y = np.array(y)
+    print "Number of positive examples:", np.sum(y)
+    print "Number of total examples:", len(y)
+    return X, y
 
 def calculate_date_diff(first_date, last_date):
     # *_date are dateutil module instances
@@ -116,6 +114,6 @@ metadata = get_metadata(reader)
 # get grid from coordinates
 grid = get_grid(metadata)
 # obtain data samples
-X, y, mask = get_data(grid)
+X, y = get_data(grid)
 # gether training and test data
-X_train, X_test, y_train, y_test = get_train_test(X, y)
+#training_set, test_set = get_train_test(X, y)

@@ -1,44 +1,42 @@
-import numpy as np
 import tensorflow as tf
-from tensorflow.python.framework import dtypes
-from tensorflow.contrib import learn
+import prettytensor as pt
+import numpy as np
 
-def lstm_model(time_steps, rnn_layers, dense_layers=None):
-    """
-    Creates a deep model based on:
-        * stacked lstm cells
-        * an optional dense layers
-    :param time_steps: the number of time steps the model will be looking at.
-    :param rnn_layers: list of int or dict
-                         * list of int: the steps used to instantiate the `BasicLSTMCell` cell
-                         * list of dict: [{steps: int, keep_prob: int}, ...]
-    :param dense_layers: list of nodes for each layer
-    :return: the model definition
-    """
-    def lstm_cells(layers):
-        if isinstance(layers[0], dict):
-            return [tf.nn.rnn_cell.DropoutWrapper(tf.nn.rnn_cell.BasicLSTMCell(layer['steps']),
-                                                  layer['keep_prob'])
-                    if layer.get('keep_prob') else tf.nn.rnn_cell.BasicLSTMCell(layer['steps'])
-                    for layer in layers]
-        return [tf.nn.rnn_cell.BasicLSTMCell(steps) for steps in layers]
+def network():
+	conflict_grids = tf.placeholder(tf.float32, [num_timesteps, grid_size])
+	poverty_grid = tf.placeholder(tf.float32, [1, grid_size])
 
-    def dnn_layers(input_layers, layers):
-        if layers and isinstance(layers, dict):
-            return learn.ops.dnn(input_layers,
-                                 layers['layers'],
-                                 activation=layers.get('activation'),
-                                 dropout=layers.get('dropout'))
-        elif layers:
-            return learn.ops.dnn(input_layers, layers)
-        else:
-            return input_layers
+	assert(num_timesteps > 1)
+	enc_conflicts = []
+        with tf.variable_scope("model") as scope:
+	    with pt.defaults_scope(activation_fn=tf.nn.relu,
+				   batch_normalize=True,
+				   learned_moments_update_rate=0.0003,
+				   variance_epsilon=0.001,
+				   scale_after_normalization=True):
+		enc_conflicts.append(cnn_conflict(conflict_grids[0]))
+	
+	for t in range(1, num_timesteps):
+            with tf.variable_scope("model", reuse=True) as scope:
+                with pt.defaults_scope(activation_fn=tf.nn.relu,
+				       batch_normalize=True,
+				       learned_moments_update_rate=0.0003,
+				       variance_epsilon=0.001,
+				       scale_after_normalization=True):
+		    enc_conflicts.append(cnn_conflict(conflict_grids[t]))
 
-    def _lstm_model(X, y):
-        stacked_lstm = tf.nn.rnn_cell.MultiRNNCell(lstm_cells(rnn_layers))
-        x_ = learn.ops.split_squeeze(1, time_steps, X)
-        output, layers = tf.nn.rnn(stacked_lstm, x_, dtype=dtypes.float32)
-        output = dnn_layers(output[-1], dense_layers)
-        return learn.models.linear_regression(output, y)
+	mean_conflict = tf.reduce_mean(enc_conflicts, 0)
 
-    return _lstm_model
+        with tf.variable_scope("model") as scope:
+	    with pt.defaults_scope(activation_fn=tf.nn.relu,
+				   batch_normalize=True,
+				   learned_moments_update_rate=0.0003,
+				   variance_epsilon=0.001,
+				   scale_after_normalization=True):
+                enc_poverty = cnn_poverty(poverty_grid)
+
+        feats = tf.concat(0, [mean_conflict, enc_poverty])
+        pred = fc_layers(feats)
+
+        return pred, conflict_grids, poverty_grid 
+	
