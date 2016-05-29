@@ -55,14 +55,13 @@ def calculate_date_diff(first_date, last_date):
     return (last_date.year - first_date.year)*12 + (last_date.month - first_date.month)
 
 def calculate_grid_size(latitudes, longitudes):
-    # args are lists of floats
-    north = np.ceil(max(latitudes))
-    south = np.floor(min(latitudes))
-    east = np.ceil(max(longitudes))
-    west = np.floor(min(longitudes))
+    north = np.ceil(max(latitudes) * 2.0) / 2.0
+    south = np.floor(min(latitudes) * 2.0) / 2.0
+    east = np.ceil(max(longitudes) * 2.0) / 2.0
+    west = np.floor(min(longitudes) * 2.0) / 2.0
 
-    num_y = int((north - south)/degree_interval)
-    num_x = int((east - west)/degree_interval)
+    num_y = int((north - south) / degree_interval)
+    num_x = int((east - west) / degree_interval)
     return num_x, num_y, (north, south, east, west)
 
 def get_grid(metadata, save=False):
