@@ -9,8 +9,9 @@ from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from sklearn.cross_validation import train_test_split
 
-csv_filename = '../data/liberia.csv'
-country_name = 'liberia'
+csv_filename = '../data/uganda.csv'
+country_name = 'uganda'
+save_name = '../data/' + country_name + '_data'
 degree_interval = 0.5
 num_timesteps = 4
 num_features = 2
@@ -81,8 +82,8 @@ def get_grid(metadata, save=False):
     # 0 -> num_conflicts, 1 -> deaths
     grid = np.zeros((num_grids, num_x, num_y, num_features))
     for i in range(len(latitudes)):
-        x = int(np.ceil((longitudes[i] - west)/degree_interval))
-        y = int(np.ceil((latitudes[i] - south)/degree_interval))
+        x = int(np.floor((longitudes[i] - west)/degree_interval))
+        y = int(np.floor((latitudes[i] - south)/degree_interval))
         t = calculate_date_diff(first_date, dates[i])
         grid[t, x, y, conflict_index] += 1
         grid[t, x, y, death_index] += deaths[i]
@@ -119,3 +120,5 @@ grid = get_grid(metadata)
 X, y, mask = get_data(grid)
 # gether training and test data
 X_train, X_test, y_train, y_test = get_train_test(X, y)
+data = (X_train, X_test, y_train, y_test, mask)
+np.save(save_name, data)
