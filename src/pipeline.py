@@ -6,6 +6,7 @@ import argparse
 import models
 import sys
 import os
+import data
 
 from progressbar import ETA, Bar, Percentage, ProgressBar
 
@@ -39,12 +40,13 @@ else:
 def get_loss(pred, gt, mask):
     loss = tf.div(tf.reduce_sum(tf.square(tf.sub(pred, gt))), 
 			      tf.constant(float(batch_size)))
-	return tf.mul(loss, mask)
+    return tf.mul(loss, mask)
 
 def train():
     with tf.device('/gpu:0'): # run on specific device
         conflict_grids, pred, gt, mask = models.import_model(num_timesteps, 
-														 input_size)
+							     input_size,
+                                                             batch_size)
         loss = get_loss(pred, gt, mask)
         optimizer = tf.train.AdamOptimizer(learning_rate, epsilon=1.0)
         train = optimizer.minimize(loss=loss)
@@ -77,10 +79,10 @@ def train():
                 conflict_grids_batch, gt_batch, mask_batch = \
 					dataset.next_batch(batch_size)
                 _, loss_value = sess.run([train, loss], 
-										 {conflict_grids : conflict_grids_batch,
+			                 {conflict_grids : conflict_grids_batch,
                                           gt : gt_batch,
                                           mask: mask_batch})
-                training_loss += loss_value
+                training_loss += np.sum(loss_value)
 
             training_loss = training_loss/(updates_per_epoch * batch_size)
             print("Loss %f" % training_loss)
