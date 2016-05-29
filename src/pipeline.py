@@ -25,8 +25,8 @@ data_file = '../data/uganda_data.npy'
 learning_rate = 1e-4
 batch_size = 1
 num_timesteps = 4
-input_size = (12, 12, 2)
-max_epoch = 600
+input_size = (11, 11, 2)
+max_epoch = 601
 dataset_size = 201
 updates_per_epoch = int(np.ceil(float(dataset_size) / float(batch_size)))
 
@@ -41,7 +41,7 @@ else:
 if args.model_path:
     model_path = args.model_path
 else:
-    model_path = 'trial/checkpoints/model.ckpt-400'
+    model_path = 'trial/checkpoints/model.ckpt-600'
 
 def get_loss(pred, gt, mask):
     loss = tf.div(tf.reduce_sum(tf.square(tf.sub(pred, gt))), 
