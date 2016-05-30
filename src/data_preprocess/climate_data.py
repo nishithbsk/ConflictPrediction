@@ -8,6 +8,7 @@
 
 import numpy as np
 from netCDF4 import Dataset
+import matplotlib.pyplot as plt
 
 #nc file data starting index
 year_init = 1900
@@ -16,11 +17,11 @@ lats_init = 90
 
 #conflict grid index, obtained from conflict map information
 year_start = 1997
-year_end   = 2010
-lats_south = 12
-lats_north = 15
-lons_west  = 360 - 18
-lons_east  = 360 - 10
+year_end   = 2014
+lats_south = -1.5
+lats_north = 4
+lons_west  = 29.5
+lons_east  = 35
 
 degree_interval = 0.5
 num_y     = int((lats_north - lats_south)/degree_interval)
@@ -30,11 +31,11 @@ num_feat  = 2
 
 #calculating the index in the nc raw data for the desired grid
 time_ind_start = (year_start - year_init     ) * 12    
-time_ind_end   = (year_end   - year_init  + 1) * 12
-lats_ind_south = (lats_init  - lats_south    ) * 2
+time_ind_end   = (year_end   - year_init  + 1) * 12 - 1
+lats_ind_south = (lats_init  - lats_south    ) * 2  - 1
 lats_ind_north = (lats_init  - lats_north    ) * 2
 lons_ind_west  = (lons_west  - lons_init     ) * 2
-lons_ind_east  = (lons_east  - lons_init     ) * 2
+lons_ind_east  = (lons_east  - lons_init     ) * 2  - 1
 
 #getting data from ncfile: latitude, longitude, air temperature, and precipitation
 def get_metadata(nc_fid_air, nc_fid_precip):
@@ -44,38 +45,35 @@ def get_metadata(nc_fid_air, nc_fid_precip):
 	precip  = nc_fid_precip.variables['precip'][:]
 	return lats, lons, air, precip
 
-def get_grid(lats, lons, air, precip):
-	grid        = np.zeros((num_grids, num_x, num_y, num_feat))
-	data_air    = air[time_ind_start: time_ind_end, lats_ind_north:lats_ind_south, lons_ind_west:lons_ind_east]
-	data_precip = precip[time_ind_start: time_ind_end, lats_ind_north:lats_ind_south, lons_ind_west:lons_ind_east]
-	for i in range(0, num_grids - 1):
-		temp_air1   = air[time_ind_start + i, lats_ind_north:lats_ind_south, lons_ind_west:lons_ind_east]
-		temp_precip1  = precip[time_ind_start + i, lats_ind_north:lats_ind_south, lons_ind_west:lons_ind_east]
-		# transpose for longitude and latitude
-		temp_air1    = np.transpose(temp_air1)
-		temp_precip1 = np.transpose(temp_precip1)
-		# the index for latitude is reversed with conflict grid convention, fixing it here
-		temp_air2    = temp_air1
-		temp_precip2 = temp_precip1
-		for j in range(0, num_y - 1):
-			temp_air1[:, j]    = temp_air2[:, num_y - j - 1]
-			temp_precip1[:, j] = temp_precip2[:, num_y - j - 1]
+def reverse_col(matrix):
+	row_num, col_num = matrix.shape
+	matrix_temp = np.zeros((row_num, col_num))
+	for i in range(col_num):
+		matrix_temp[:, i] = matrix[:, col_num - 1 - i]
+	return matrix_temp
 
+def get_grid(lats, lons, air, precip):
+	grid = np.zeros((num_grids, num_x, num_y, num_feat))
+	for i in range(num_grids):
+		temp_air     =    air[time_ind_start + i, lats_ind_north:lats_ind_south + 1, lons_ind_west:lons_ind_east + 1]
+		temp_precip  = precip[time_ind_start + i, lats_ind_north:lats_ind_south + 1, lons_ind_west:lons_ind_east + 1]
+		# transpose for longitude and latitude
+		temp_air    = np.transpose(temp_air)
+		temp_precip = np.transpose(temp_precip)
+		# the index for latitude is reversed with conflict grid convention, reversing the column index
+		temp_air    = reverse_col(temp_air)
+		temp_precip = reverse_col(temp_precip)
 		#giving grid the value at time i
-		#feature 0: air temperature; feature 1: precipitation
-		grid[i, :, :, 0] = temp_air1
-		grid[i, :, :, 1] = temp_precip1
+		#feature 0: air temperature
+		#feature 1: precipitation
+		grid[i, :, :, 0] = temp_air
+		grid[i, :, :, 1] = temp_precip
 	return grid
 
 
-nc_fid_air = Dataset('../data/air.mon.mean.v401.nc', 'r')
-nc_fid_precip = Dataset('../data/precip.mon.total.v401.nc', 'r')
-
+nc_fid_air = Dataset('air.mon.mean.v401.nc', 'r')
+nc_fid_precip = Dataset('precip.mon.total.v401.nc', 'r')
+# getting raw data from nc file
 lats, lons, air, precip = get_metadata(nc_fid_air, nc_fid_precip) 
-
+# getting the grid
 grid = get_grid(lats, lons, air, precip)
-
-#(x, y, z) = grid.shape
-#print x, y, z
-#print grid[84][8][3][0]
-#print grid[84][8][3][1]
