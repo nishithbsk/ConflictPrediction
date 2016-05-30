@@ -9,7 +9,7 @@ import os
 import data_loader
 
 from progressbar import ETA, Bar, Percentage, ProgressBar
-from sklearn.metrics import average_precision_score
+from sklearn.metrics import precision_recall_curve, average_precision_score
 
 np.random.seed(1234)
 tf.set_random_seed(0)
@@ -140,7 +140,7 @@ def evaluate(print_grid=False):
             gt_batch = np.delete(gt_batch.flatten(), to_remove_idxs)
             assert(len(pred_value) == len(gt_batch))
 
-            for k in len(pred_value):
+            for k in range(len(pred_value)):
                 all_pred.append(pred_value[k])
                 all_gt.append(gt_batch[k])
 
@@ -162,4 +162,4 @@ if __name__ == "__main__":
     if args.mode == 'train':
         train()
     elif args.mode == 'eval':
-        evaluate()
+        evaluate(print_grid=False)
