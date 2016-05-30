@@ -58,7 +58,7 @@ def train():
         optimizer = tf.train.AdamOptimizer(learning_rate, epsilon=1.0)
         train = optimizer.minimize(loss=loss)
 
-    dataset = data_loader.read_datasets(data_file)
+    dataset, conflict_mask, poverty_grid, poverty_mask = data_loader.read_datasets(data_file)
 
     saver = tf.train.Saver()  # defaults to saving all variables
 

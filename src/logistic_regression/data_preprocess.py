@@ -14,7 +14,7 @@ country_name = 'uganda'
 save_name = '../../data/processed/logistic_regression/uganda_data'
 degree_interval = 0.5
 num_timesteps = 4
-num_features = 2
+num_features = 4
 
 latitude_column = 19
 longitude_column = 20
@@ -22,6 +22,8 @@ date_column = 3
 death_column = 24
 conflict_index = 0
 death_index = 1
+lat_index = 2
+long_index = 3
 
 def get_train_test(X, y, test_size=0.10):
     return train_test_split(X, y, test_size=test_size, random_state=42)
@@ -82,6 +84,8 @@ def get_grid(metadata, save=False):
         t = calculate_date_diff(first_date, dates[i])
         grid[t, x, y, conflict_index] += 1
         grid[t, x, y, death_index] += deaths[i]
+        grid[t, x, y, lat_index] = x
+        grid[t, x, y, long_index] = y
 
     if save:
         np.save('../data/grid_%s' % country_name, grid)
