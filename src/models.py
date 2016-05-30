@@ -15,7 +15,7 @@ def fc_layers(input_tensor, size):
     return (pt.wrap(input_tensor).
             fully_connected(256, name='common_fc1').
             fully_connected(size*size, activation_fn=tf.sigmoid, name='common_fc2').
-            reshape([1, size, size, 1])).tensor
+            reshape([size, size])).tensor
 
 def network_conflict(input_tensor):    
     return (pt.wrap(input_tensor).

@@ -9,6 +9,7 @@ import os
 import data_loader
 
 from progressbar import ETA, Bar, Percentage, ProgressBar
+from sklearn.metrics import average_precision_score
 
 np.random.seed(1234)
 tf.set_random_seed(0)
@@ -21,7 +22,7 @@ parser.add_argument('mode', choices=('train', 'eval'), help='train or eval')
 args = parser.parse_args()
 
 # Training Constants
-data_file = '../data/uganda_data.npy'
+data_file = '../data/uganda_conflicts.npy'
 learning_rate = 1e-4
 batch_size = 1
 num_timesteps = 4
@@ -111,7 +112,7 @@ def train():
 
         writer.close()
 
-def evaluate():
+def evaluate(print_grid=False):
     with tf.device('/gpu:0'): # run on specific device
         conflict_grids, pred, gt, mask = models.import_model(num_timesteps, 
 							     input_size,
@@ -123,14 +124,39 @@ def evaluate():
     
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
         saver.restore(sess, model_path)
+
+        all_pred, all_gt = [], []
         for i in range(updates_per_epoch):
             conflict_grids_batch, gt_batch, mask_batch = \
                                     dataset.next_batch(batch_size)
-            pred_value  = sess.run([pred], 
-                                   {conflict_grids : conflict_grids_batch,
-                                    gt : gt_batch,
-                                    mask: mask_batch})
-            print(np.squeeze(pred_value))
+            pred_value = sess.run([pred], 
+                                  {conflict_grids : conflict_grids_batch,
+                                   gt : gt_batch,
+                                   mask: mask_batch})
+
+            pred_value = pred_value * mask_batch
+            to_remove_idxs = np.where(mask_batch.flatten() < 1)
+            pred_value = np.delete(pred_value.flatten(), to_remove_idxs)
+            gt_batch = np.delete(gt_batch.flatten(), to_remove_idxs)
+            assert(len(pred_value) == len(gt_batch))
+
+            for k in len(pred_value):
+                all_pred.append(pred_value[k])
+                all_gt.append(gt_batch[k])
+
+            if print_grid:
+                np.set_printoptions(precision=1, linewidth = 150, suppress=True)
+                print('-'*80)
+                print(np.squeeze(pred_value)) 
+                print(np.squeeze(gt_batch))
+        
+        precision, recall, thresholds = precision_recall_curve(all_gt, all_pred)
+        print("Precision:")
+        print(precision)
+        print("Recall:")
+        print(recall)
+        print("Thresholds:")
+        print(thresholds)
 
 if __name__ == "__main__":
     if args.mode == 'train':
