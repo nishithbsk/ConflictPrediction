@@ -22,7 +22,7 @@ parser.add_argument('mode', choices=('train', 'eval'), help='train or eval')
 args = parser.parse_args()
 
 # Training Constants
-data_file = '../data/uganda_conflicts.npy'
+data_file = '../../data/processed/uganda_conflicts.npy'
 learning_rate = 1e-4
 batch_size = 1
 num_timesteps = 4
