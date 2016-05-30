@@ -26,8 +26,8 @@ def network_conflict(input_tensor):
              
 def network(): 
     dim_0, dim_1, dim_2 = grid_size
-    conflict_grids = tf.placeholder(tf.float32, [num_timesteps, dim_0, dim_1, dim_2])
     gt = tf.placeholder(tf.float32, [dim_0, dim_1])	
+    conflict_grids = tf.placeholder(tf.float32, [num_timesteps, dim_0, dim_1, dim_2])
     mask = tf.placeholder(tf.float32, [dim_0, dim_1])
     #poverty_grid = tf.placeholder(tf.float32, [1, dim_0, dim_1])
 

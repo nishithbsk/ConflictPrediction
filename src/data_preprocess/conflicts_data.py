@@ -9,9 +9,9 @@ from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from sklearn.cross_validation import train_test_split
 
-csv_filename = '../data/uganda.csv'
+csv_filename = '../../data/raw/uganda.csv'
 country_name = 'uganda'
-save_name = '../data/' + country_name + '_data'
+save_name = '../../data/' + country_name + '_conflicts'
 degree_interval = 0.5
 num_timesteps = 4
 num_features = 2

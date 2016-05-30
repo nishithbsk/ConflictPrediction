@@ -6,7 +6,7 @@ import argparse
 import models
 import sys
 import os
-import data
+import data_loader
 
 from progressbar import ETA, Bar, Percentage, ProgressBar
 
@@ -57,7 +57,7 @@ def train():
         optimizer = tf.train.AdamOptimizer(learning_rate, epsilon=1.0)
         train = optimizer.minimize(loss=loss)
 
-    dataset = data.read_datasets(data_file)
+    dataset = data_loader.read_datasets(data_file)
 
     saver = tf.train.Saver()  # defaults to saving all variables
 
@@ -117,7 +117,7 @@ def evaluate():
 							     input_size,
                                                              batch_size)
 
-    dataset = data.read_datasets(data_file, dataset_type='test')
+    dataset = data_loader.read_datasets(data_file, dataset_type='test')
 
     saver = tf.train.Saver() 
     

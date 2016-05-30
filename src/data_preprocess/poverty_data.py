@@ -1,10 +1,11 @@
 import csv
 import numpy as np
-from data_preprocess import calculate_grid_size, degree_interval
+from conflicts_data import calculate_grid_size, degree_interval
 
-csv_filename = '../data/poverty_dataset.csv'
+csv_filename = '../../data/raw/poverty_dataset.csv'
 csv_file = open(csv_filename, 'rb')
 csv_reader = csv.DictReader(csv_file)
+save_name = '../../data/uganda_poverty'
 
 col_names = ['lat', 'lon', 
 			 'households', 'urban', 'nightlights', 'consumption', 'elevation',
@@ -55,3 +56,5 @@ for j, feat in enumerate(col_names):
 	print '\n' + feat + ':\n', grid[:, :, j]
 print '\nMASK:\n', mask
 # TODO(nish): grid contains the features, and mask contains the bitmask
+np.save(save_name + '_grid', grid)
+np.save(save_name + '_mask', mask)
