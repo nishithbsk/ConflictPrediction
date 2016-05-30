@@ -7,9 +7,11 @@ import matplotlib.pyplot as plt
 
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
+from sklearn.cross_validation import train_test_split
 
-csv_filename = '../data/liberia.csv'
-country_name = 'liberia'
+csv_filename = '../../data/raw/uganda.csv'
+country_name = 'uganda'
+save_name = '../../data/processed/logistic_regression/uganda_data'
 degree_interval = 0.5
 num_timesteps = 4
 num_features = 2
@@ -21,11 +23,8 @@ death_column = 24
 conflict_index = 0
 death_index = 1
 
-'''
-def get_train_test(X, y):
-    split = 0.8
-    num_train = int(np.ceil(0.8*len(y)))
-''' 
+def get_train_test(X, y, test_size=0.10):
+    return train_test_split(X, y, test_size=test_size, random_state=42)
 
 def get_data(grid):
     X, y = [], []
@@ -35,8 +34,8 @@ def get_data(grid):
             grid_cell = grid[:, i, j, :]
             # ignore if cell has never had any conflicts
             if np.sum(grid_cell[:, conflict_index]) == 0: continue
-            for t in range(num_timesteps, timescale):
-                X.append(grid_cell[t - num_timesteps: t])
+            for t in range(1, timescale):
+                X.append(grid_cell[t - 1])
                 if grid_cell[t, conflict_index] > 0:
                     y.append(1)
                 else:
@@ -52,14 +51,13 @@ def calculate_date_diff(first_date, last_date):
     return (last_date.year - first_date.year)*12 + (last_date.month - first_date.month)
 
 def calculate_grid_size(latitudes, longitudes):
-    # args are lists of floats
-    north = np.ceil(max(latitudes))
-    south = np.floor(min(latitudes))
-    east = np.ceil(max(longitudes))
-    west = np.floor(min(longitudes))
+    north = np.ceil(max(latitudes) * 2.0) / 2.0
+    south = np.floor(min(latitudes) * 2.0) / 2.0
+    east = np.ceil(max(longitudes) * 2.0) / 2.0
+    west = np.floor(min(longitudes) * 2.0) / 2.0
 
-    num_y = int((north - south)/degree_interval)
-    num_x = int((east - west)/degree_interval)
+    num_y = int((north - south) / degree_interval)
+    num_x = int((east - west) / degree_interval)
     return num_x, num_y, (north, south, east, west)
 
 def get_grid(metadata, save=False):
@@ -79,8 +77,8 @@ def get_grid(metadata, save=False):
     # 0 -> num_conflicts, 1 -> deaths
     grid = np.zeros((num_grids, num_x, num_y, num_features))
     for i in range(len(latitudes)):
-        x = int(np.ceil((longitudes[i] - west)/degree_interval))
-        y = int(np.ceil((latitudes[i] - south)/degree_interval))
+        x = int(np.floor((longitudes[i] - west)/degree_interval))
+        y = int(np.floor((latitudes[i] - south)/degree_interval))
         t = calculate_date_diff(first_date, dates[i])
         grid[t, x, y, conflict_index] += 1
         grid[t, x, y, death_index] += deaths[i]
@@ -116,4 +114,6 @@ grid = get_grid(metadata)
 # obtain data samples
 X, y = get_data(grid)
 # gether training and test data
-#training_set, test_set = get_train_test(X, y)
+X_train, X_test, y_train, y_test = get_train_test(X, y)
+data = (X_train, X_test, y_train, y_test)
+np.save(save_name, data)
