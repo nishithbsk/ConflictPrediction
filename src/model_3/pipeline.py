@@ -150,16 +150,37 @@ def evaluate(print_grid=False):
                 print(np.squeeze(pred_value)) 
                 print(np.squeeze(gt_batch))
        
-        assert(len(all_pred) == len(all_gt))
+                assert(len(all_pred) == len(all_gt))
+    
         num_align = 0
         for i in range(len(all_pred)):
             if all_gt[i] > 0:
                 if all_pred[i] > 0.5: num_align += 1
             elif all_gt[i] < 1:
                 if all_pred[i] <= 0.5: num_align += 1
-        print("Number of examples:", len(all_pred))
-        print("Number of aligned examples:", num_align)
-        print("Ratio:", float(num_align)/len(all_pred))
+        print "Aligned:", float(num_align)/len(all_pred)
+    
+        threshold = 0.5
+        precision_num, precision_denom = 0.0, 0.0
+        for i in range(len(all_pred)):
+            if all_gt[i] == 1:
+                if all_pred[i] >= threshold:
+                    precision_num += 1
+                    precision_denom += 1
+            else:
+                 if all_pred[i] >= threshold: precision_denom += 1
+    
+        recall_num, recall_denom = 0.0, 0.0
+        for i in range(len(all_pred)):
+            if all_gt[i] == 1:
+                if all_pred[i] >= threshold:
+                    recall_num += 1
+                    recall_denom += 1
+                else:
+                    recall_denom += 1
+
+        print "Precision", float(precision_num)/precision_denom
+        print "Recall", float(recall_num)/recall_denom
                 
         ''' 
         precision, recall, thresholds = precision_recall_curve(all_gt, all_pred)
