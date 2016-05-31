@@ -42,7 +42,7 @@ else:
 if args.model_path:
     model_path = args.model_path
 else:
-    model_path = 'trial/checkpoints/model.ckpt-600'
+    model_path = 'relu/checkpoints/model.ckpt-600'
 
 def get_loss(pred, gt, mask):
     loss = tf.div(tf.reduce_sum(tf.square(tf.sub(pred, gt))), 
