@@ -37,11 +37,11 @@ def network():
                                                  conflict_grid_size[0],
                                                  conflict_grid_size[1],
                                                  conflict_grid_size[2]])
-    poverty_grid = tf.placeholder(tf.float32, [1,
-                                               poverty_grid_size[0],
+    poverty_grid = tf.placeholder(tf.float32, [poverty_grid_size[0],
                                                poverty_grid_size[1],
-                                               poverty_grid_size[2],])
-    print poverty_grid.get_shape()
+                                               poverty_grid_size[2],
+                                               poverty_grid_size[3]])
+    
     assert(num_timesteps > 1)
     with tf.variable_scope("model") as scope:
         with pt.defaults_scope(activation_fn=tf.nn.relu,
