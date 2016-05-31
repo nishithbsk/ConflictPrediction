@@ -34,7 +34,7 @@ def network_conflict(input_tensor):
 def network_rnn(rnn_inputs):
     return (pt.wrap(rnn_inputs).
             cleave_sequence(num_timesteps).
-            sequence_lstm(64).
+            sequence_lstm(128).
             squash_sequence())[num_timesteps - 1,:]
              
 def network(): 
@@ -58,7 +58,7 @@ def network():
             enc_conflicts = network_conflict(conflict_grids)
             rnn_output = network_rnn(enc_conflicts)
     
-    rnn_output = tf.reshape(rnn_output, [1, 64])
+    rnn_output = tf.reshape(rnn_output, [1, 128])
 
     with tf.variable_scope("model") as scope:
         with pt.defaults_scope(activation_fn=tf.nn.relu,
