@@ -41,7 +41,7 @@ def network():
                                                poverty_grid_size[0],
                                                poverty_grid_size[1],
                                                poverty_grid_size[2],])
-
+    print poverty_grid.get_shape()
     assert(num_timesteps > 1)
     with tf.variable_scope("model") as scope:
         with pt.defaults_scope(activation_fn=tf.nn.relu,
@@ -62,8 +62,8 @@ def network():
                                scale_after_normalization=True):
             enc_poverty = network_poverty(poverty_grid)
     
-    feats = tf.concat(0, [mean_conflict, enc_poverty])
+    feats = tf.concat(1, [mean_conflict, enc_poverty])
 
-    pred = fc_layers(feats, dim_0)
+    pred = fc_layers(feats, conflict_grid_size[0])
 
     return conflict_grids, poverty_grid, pred, gt
