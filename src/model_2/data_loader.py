@@ -49,7 +49,7 @@ def read_datasets(data_paths=[], dataset_type='train'):
     X_train, X_test, y_train, y_test, conflict_mask = np.load(conflict_data_path)
     poverty_grid = (np.load(poverty_grid_path))[np.newaxis, :, :, :]
     poverty_mask = np.load(poverty_mask_path)
-    print poverty_grid.shape    
+ 
     if dataset_type == 'train':
         print('Training data shape:', X_train.shape)
         return DataSet(X_train, y_train), conflict_mask, poverty_grid, poverty_mask 
