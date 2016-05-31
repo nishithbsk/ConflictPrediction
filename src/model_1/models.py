@@ -22,7 +22,7 @@ def network_conflict(input_tensor):
             conv2d(3, 2, stride=1).
             conv2d(5, 5, stride=1).
             flatten().
-            fully_connected(128, name='conflict_fc1')).tensor
+            fully_connected(128, activation_fn=None, name='conflict_fc1')).tensor
              
 def network(): 
     dim_0, dim_1, dim_2 = grid_size
