@@ -12,6 +12,8 @@ model = LogisticRegression()
 model.fit(X_train, y_train)
 pred = model.predict(X_test)
 
+print "Aligned:", model.score(X_test, y_test)
+
 precision_num, precision_denom = 0.0, 0.0
 for i in range(len(pred)):
 	if y_test[i] == 1:
@@ -20,7 +22,7 @@ for i in range(len(pred)):
 			precision_denom += 1
 	else:
 		if pred[i] == 1: precision_denom += 1
-print float(precision_num)/precision_denom
+print "Precision:", float(precision_num)/precision_denom
 
 recall_num, recall_denom = 0.0, 0.0
 for i in range(len(pred)):
@@ -31,5 +33,5 @@ for i in range(len(pred)):
 		else:
 			recall_denom += 1
 
-print float(recall_num)/recall_denom
+print "Recall:", float(recall_num)/recall_denom
 
