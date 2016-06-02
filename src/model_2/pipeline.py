@@ -184,6 +184,7 @@ def evaluate(print_grid=False):
                 else:
                     recall_denom += 1
 
+        precision, recall, thresholds = precision_recall_curve(all_gt, all_pred)
         print "Precision", float(precision_num)/precision_denom
         print "Recall", float(recall_num)/recall_denom
 

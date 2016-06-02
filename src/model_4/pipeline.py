@@ -116,6 +116,39 @@ def train():
 
         writer.close()
 
+def get_stats(all_pred, all_gt):
+    assert(len(all_pred) == len(all_gt))
+
+    num_align = 0
+    for i in range(len(all_pred)):
+        if all_gt[i] > 0:
+            if all_pred[i] > 0.5: num_align += 1
+        elif all_gt[i] < 1:
+            if all_pred[i] <= 0.5: num_align += 1
+    print "Aligned:", float(num_align)/len(all_pred)
+
+    threshold = 0.5
+    precision_num, precision_denom = 0.0, 0.0
+    for i in range(len(all_pred)):
+        if all_gt[i] == 1:
+            if all_pred[i] >= threshold:
+                precision_num += 1
+                precision_denom += 1
+        else:
+             if all_pred[i] >= threshold: precision_denom += 1
+
+    recall_num, recall_denom = 0.0, 0.0
+    for i in range(len(all_pred)):
+        if all_gt[i] == 1:
+            if all_pred[i] >= threshold:
+                recall_num += 1
+                recall_denom += 1
+            else:
+                recall_denom += 1
+
+    print "Precision", float(precision_num)/precision_denom
+    print "Recall", float(recall_num)/recall_denom
+
 def evaluate(print_grid=False):
     data_paths = [conflict_data_file, poverty_grid_file, poverty_mask_file]
     dataset, conflict_mask, poverty_grid, poverty_mask = data_loader.read_datasets(data_paths, dataset_type='test')
@@ -154,38 +187,12 @@ def evaluate(print_grid=False):
                 print('-'*80)
                 print(np.squeeze(pred_value)) 
                 print(np.squeeze(gt_batch))
-       
-        assert(len(all_pred) == len(all_gt))
-    
-        num_align = 0
-        for i in range(len(all_pred)):
-            if all_gt[i] > 0:
-                if all_pred[i] > 0.5: num_align += 1
-            elif all_gt[i] < 1:
-                if all_pred[i] <= 0.5: num_align += 1
-        print "Aligned:", float(num_align)/len(all_pred)
-    
-        threshold = 0.5
-        precision_num, precision_denom = 0.0, 0.0
-        for i in range(len(all_pred)):
-            if all_gt[i] == 1:
-                if all_pred[i] >= threshold:
-                    precision_num += 1
-                    precision_denom += 1
-            else:
-                 if all_pred[i] >= threshold: precision_denom += 1
-    
-        recall_num, recall_denom = 0.0, 0.0
-        for i in range(len(all_pred)):
-            if all_gt[i] == 1:
-                if all_pred[i] >= threshold:
-                    recall_num += 1
-                    recall_denom += 1
-                else:
-                    recall_denom += 1
+        
+        get_stats(all_pred, all_gt)
 
-        print "Precision", float(precision_num)/precision_denom
-        print "Recall", float(recall_num)/recall_denom
+        print "Collecting stats for random predictions"
+        all_random = np.random.randint(0, 2, (len(all_pred)))
+        get_stats(all_random, all_gt)
 
 if __name__ == "__main__":
     if args.mode == 'train':

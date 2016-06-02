@@ -11,7 +11,7 @@ from sklearn.cross_validation import train_test_split
 
 csv_filename = '../../data/raw/uganda.csv'
 country_name = 'uganda'
-save_name = '../../data/' + country_name + '_conflicts'
+save_name = '../../data/processed/' + country_name + '_conflicts'
 degree_interval = 0.5
 num_timesteps = 4
 num_features = 2
@@ -23,8 +23,15 @@ death_column = 24
 conflict_index = 0
 death_index = 1
 
-def get_train_test(X, y, test_size=0.10):
-    return train_test_split(X, y, test_size=test_size, random_state=42)
+def get_train_test(X, y, test_percent=0.10):
+    num_total = len(X)
+    num_test = int(np.ceil(test_percent * num_total))
+    X_train = X[:num_total - num_test]
+    y_train = y[:num_total - num_test]
+    X_test = X[num_timesteps - num_test:]
+    y_test = y[num_timesteps - num_test:]
+    return (X_train, X_test, y_train, y_test)
+    #return train_test_split(X, y, test_size=test_percent, random_state=42)
 
 def get_data(grid):
     X, y = [], []
