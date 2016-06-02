@@ -24,6 +24,7 @@ conflict_index = 0
 death_index = 1
 
 def get_train_test(X, y, test_percent=0.10):
+    '''
     num_total = len(X)
     num_test = int(np.ceil(test_percent * num_total))
     X_train = X[:num_total - num_test]
@@ -31,7 +32,8 @@ def get_train_test(X, y, test_percent=0.10):
     X_test = X[num_timesteps - num_test:]
     y_test = y[num_timesteps - num_test:]
     return (X_train, X_test, y_train, y_test)
-    #return train_test_split(X, y, test_size=test_percent, random_state=42)
+    '''
+    return train_test_split(X, y, test_size=test_percent, random_state=42)
 
 def get_data(grid):
     X, y = [], []
