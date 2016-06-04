@@ -87,4 +87,4 @@ def network():
 
     pred = fc_layers(feats, conflict_grid_size[0])
 
-    return conflict_grids, poverty_grid, pred, gt
+    return conflict_grids, climate_grids, poverty_grid, pred, gt

@@ -23,6 +23,7 @@ args = parser.parse_args()
 
 # Training Constants
 conflict_data_file = '../../data/processed/uganda_conflicts.npy'
+climate_data_file = '../../data/processed/uganda_climate.npy'
 poverty_grid_file = '../../data/processed/uganda_poverty_grid.npy'
 poverty_mask_file = '../../data/processed/uganda_poverty_mask.npy'
 learning_rate = 1e-4
@@ -53,13 +54,14 @@ def get_loss(pred, gt, conflict_mask, poverty_mask):
     return tf.mul(loss, poverty_mask)
 
 def train():
-    data_paths = [conflict_data_file, poverty_grid_file, poverty_mask_file]
+    data_paths = [conflict_data_file, climate_data_file, poverty_grid_file, poverty_mask_file]
     dataset, conflict_mask, poverty_grid, poverty_mask = data_loader.read_datasets(data_paths)
     
     with tf.device('/gpu:0'): # run on specific device
-        conflict_grids, pov_grid, pred, gt = models.import_model(num_timesteps, 
-						                 input_size,
-                                                                 poverty_grid.shape)
+        conflict_grids, climate_grids, pov_grid, pred, gt = models.import_model(num_timesteps, 
+						                                input_size,
+                                                                                poverty_grid.shape,
+                                                                                input_size)
         loss = get_loss(pred, gt, conflict_mask, poverty_mask)
         optimizer = tf.train.AdamOptimizer(learning_rate, epsilon=1.0)
         train = optimizer.minimize(loss=loss)
@@ -87,10 +89,11 @@ def train():
             pbar.start()
             for i in range(updates_per_epoch):
                 pbar.update(i)
-                conflict_grids_batch, gt_batch = \
+                conflict_grids_batch, gt_batch, climate_grids_batch = \
 					dataset.next_batch(batch_size)
                 _, loss_value = sess.run([train, loss], 
 			                 {conflict_grids : conflict_grids_batch,
+                                          climate_grids : climate_grids_batch,
                                           pov_grid : poverty_grid,
                                           gt : gt_batch})
                 training_loss += np.sum(loss_value)
@@ -109,6 +112,7 @@ def train():
                 # save summaries
                 summary_str = sess.run(merged, 
                               feed_dict={conflict_grids : conflict_grids_batch,
+                                         climate_grids: climate_grids_batch,
                                          gt : gt_batch,
                                          pov_grid : poverty_grid,
                                          loss_placeholder: training_loss})
@@ -150,12 +154,13 @@ def get_stats(all_pred, all_gt):
     print "Recall", float(recall_num)/recall_denom
 
 def evaluate(print_grid=False):
-    data_paths = [conflict_data_file, poverty_grid_file, poverty_mask_file]
+    data_paths = [conflict_data_file, climate_data_file, poverty_grid_file, poverty_mask_file]
     dataset, conflict_mask, poverty_grid, poverty_mask = data_loader.read_datasets(data_paths, dataset_type='test')
     with tf.device('/gpu:0'): # run on specific device
-        conflict_grids, pov_grid, pred, gt = models.import_model(num_timesteps, 
-						                 input_size,
-                                                                 poverty_grid.shape)
+        conflict_grids, climate_grids, pov_grid, pred, gt = models.import_model(num_timesteps, 
+						                                input_size,
+                                                                                poverty_grid.shape,
+                                                                                input_size)
 
     saver = tf.train.Saver() 
     
@@ -164,10 +169,11 @@ def evaluate(print_grid=False):
 
         all_pred, all_gt = [], []
         for i in range(updates_per_epoch):
-            conflict_grids_batch, gt_batch = \
+            conflict_grids_batch, gt_batch, climate_grids_batch = \
                                     dataset.next_batch(batch_size)
             pred_value = sess.run([pred], 
                                   {conflict_grids : conflict_grids_batch,
+                                   climate_grids: climate_grids_batch,
 				   pov_grid : poverty_grid,
                                    gt : gt_batch})
 
