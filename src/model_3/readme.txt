@@ -1,1 +1,1 @@
-Model 1: Conflict grid -> CNN -> RNN -> FC -> Sigmoid
+Model 3: Conflict grid -> CNN -> RNN -> FC -> Sigmoid

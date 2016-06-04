@@ -1,3 +1,3 @@
-Model 2: Conflict grid -> CNN -> RNN
+Model 4: Conflict grid -> CNN -> RNN
                                                         -> Concatenate -> FC -> Sigmoid
          Poverty grid -> CNN 
