@@ -75,7 +75,6 @@ def network():
     
     rnn_output = tf.reshape(rnn_output, [1, 128])
 
-    '''
     with tf.variable_scope("model") as scope:
         with pt.defaults_scope(activation_fn=tf.nn.relu,
                                batch_normalize=True,
@@ -83,9 +82,9 @@ def network():
                                variance_epsilon=0.001,
                                scale_after_normalization=True):
             enc_poverty = network_poverty(poverty_grid)
+    
     feats = tf.concat(1, [rnn_output, enc_poverty])
-    '''
-    feats = rnn_output
+
     pred = fc_layers(feats, conflict_grid_size[0])
 
     return conflict_grids, climate_grids, poverty_grid, pred, gt

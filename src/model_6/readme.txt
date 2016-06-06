@@ -1,4 +1,4 @@
-Model 5: Conflict grid -> CNN 
+Model 6: Conflict grid -> CNN 
                               ->  Concatenate -> RNN
          Climate grid -> CNN
                                                         -> Concatenate -> FC -> Sigmoid

@@ -1,5 +1,3 @@
 Model 5: Conflict grid -> CNN 
-                              ->  Concatenate -> RNN
+                              ->  Concatenate -> RNN -> FC -> Sigmoid
          Climate grid -> CNN
-                                                        -> Concatenate -> FC -> Sigmoid
-         Poverty grid -> CNN 
