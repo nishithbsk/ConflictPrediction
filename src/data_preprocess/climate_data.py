@@ -90,7 +90,7 @@ lats, lons, air, precip = get_metadata(nc_fid_air, nc_fid_precip)
 # getting the grid
 grid = get_grid(lats, lons, air, precip)
 grid_early = grid[:12]
-grid = np.concatenate([grid_early, grid], 0)
+grid = np.concatenate([grid, grid_early], 0)
 X = get_data(grid)
 conflict_train, conflict_test, _, _ = get_train_test(X, np.ones((len(X))))
 data = (conflict_train, conflict_test)
